@@ -2,70 +2,10 @@
 // Вариант 1 и 4
 
 class AssociativeProcessor {
-    constructor(wordSize, matrixSize) {
-        this.wordSize = wordSize
-        this.matrixSize = matrixSize
+    constructor(lengthForWord, tableLength) {
+        this.lengthForWord = lengthForWord
+        this.tableLength = tableLength
         this.memoryTable = []
-        this.fillMemoryTable()
-    }
-
-    fillMemoryTable() {
-        for (let i = 0; i < this.matrixSize; i++) {
-            this.memoryTable[i] = Array.from({length: this.wordSize},
-                () => Math.floor(Math.random() * 2)).join('');
-        }
-    }
-
-    comparisonFlags(memoryWord, searchWord) {
-        let GFlag = false;
-        let LFlag = false;
-        for (let i = 0; i < this.wordSize; i++) {
-            const memoryWordDigit = Boolean(Number(memoryWord[i]));
-            const searchWordDigit = Boolean(Number(searchWord[i]));
-            const next_g_flag = GFlag || (!searchWordDigit && memoryWordDigit && !LFlag);
-            const next_l_flag = LFlag || (searchWordDigit && !memoryWordDigit && !GFlag);
-            GFlag = next_g_flag;
-            LFlag = next_l_flag;
-        }
-        return {'g_flag': GFlag, 'l_flag': LFlag};
-    }
-
-    compareWords(memory_word, search_word) {
-        const comparison_flags = this.comparisonFlags(memory_word, search_word);
-        if (!comparison_flags['g_flag'] && !comparison_flags['l_flag']) {
-            return 0;
-        } else if (comparison_flags['g_flag'] && !comparison_flags['l_flag']) {
-            return 1;
-        } else if (!comparison_flags['g_flag'] && comparison_flags['l_flag']) {
-            return -1;
-        } else {
-            throw new Error('Flags can\'t be equal to 1 at the same time');
-        }
-    }
-
-    closestPatternSearch(pattern) {
-        const differences = [];
-        for (const word of this.memoryTable) {
-            let differenceRank = 0;
-            for (let i = 0; i < this.wordSize; i++) {
-                differenceRank += word[i] !== pattern[i] && pattern[i] !== 'x' ? 1 : 0;
-            }
-            differences.push([word, differenceRank]);
-        }
-        const minDifferenceRank = Math.min(...differences.map(i => i[1]));
-        const filteredList = differences.filter(i => i[1] === minDifferenceRank);
-        return filteredList.map(i => i[0]);
-    }
-
-    comparingBinaryNumbers(num1, num2) {
-        for(let i = 0; i < num1.length; i++) {
-            if(num1[i] === '1' && num2[i] === '0') {
-                return 1
-            } else if(num1[i] === '0' && num2[i] === '1') {
-                return -1
-            }
-        }
-        return 0
     }
 
     findNextMin(word) {
@@ -106,10 +46,69 @@ class AssociativeProcessor {
         return biggest
     }
 
+    enterWords() {
+        for (let i = 0; i < this.tableLength; i++) {
+            this.memoryTable[i] = Array.from({length: this.lengthForWord},
+                () => Math.floor(Math.random() * 2)).join('');
+        }
+    }
+
+    checkFlags(word, neededWord) {
+        let g = false;
+        let l = false;
+        for (let i = 0; i < this.lengthForWord; i++) {
+            const wordDigit = Boolean(Number(word[i]));
+            const neededWordDigit = Boolean(Number(neededWord[i]));
+            const nextG = g || (!neededWordDigit && wordDigit && !l);
+            const nextL = l || (neededWordDigit && !wordDigit && !g);
+            g = nextG;
+            l = nextL;
+        }
+        return {g, l};
+    }
+
+    compareWords(memory_word, search_word) {
+        const comparedFlags = this.checkFlags(memory_word, search_word);
+        if (!comparedFlags['g'] && !comparedFlags['l']) {
+            return 0;
+        } else if (comparedFlags['g'] && !comparedFlags['l']) {
+            return 1;
+        } else if (!comparedFlags['g'] && comparedFlags['l']) {
+            return -1;
+        }
+    }
+
+    closestPatternSearch(pattern) {
+        const differences = [];
+        for (const word of this.memoryTable) {
+            let differenceRank = 0;
+            for (let i = 0; i < this.lengthForWord; i++) {
+                differenceRank += word[i] !== pattern[i] && pattern[i] !== 'x' ? 1 : 0;
+            }
+            differences.push([word, differenceRank]);
+        }
+        const minDifferenceRank = Math.min(...differences.map(i => i[1]));
+        const filteredList = differences.filter(i => i[1] === minDifferenceRank);
+        return filteredList.map(i => i[0]);
+    }
+
+    comparingBinaryNumbers(num1, num2) {
+        for(let i = 0; i < num1.length; i++) {
+            if(num1[i] === '1' && num2[i] === '0') {
+                return 1
+            } else if(num1[i] === '0' && num2[i] === '1') {
+                return -1
+            }
+        }
+        return 0
+    }
+
+
+
 }
 
 let obj = new AssociativeProcessor(3, 10)
-obj.fillMemoryTable()
+obj.enterWords()
 console.log(obj.memoryTable)
 let prot = obj.closestPatternSearch('0x1')
 console.log(prot[0], "- closest pattern")
